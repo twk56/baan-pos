@@ -58,6 +58,10 @@ npm start
 
 ![หน้ารับชำระเงินสดและคำนวณเงินทอน](docs/screenshots/payment.png)
 
+### ใบเสร็จ
+
+![ใบเสร็จรับเงิน Baan POS](docs/screenshots/receipt.png)
+
 ## ฟีเจอร์
 
 - Login/logout, bcrypt password hashing, session 8 ชั่วโมงใน HttpOnly/SameSite cookie, rate limit เข้าสู่ระบบ
