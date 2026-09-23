@@ -70,7 +70,7 @@ app.post('/api/users',async(req,res,next)=>{if(!pgEnabled())return next('route')
 app.get('/api/audit',async(req,res,next)=>{if(!pgEnabled())return next('route');try{if(req.user.role!=='admin')return res.status(403).json({code:'FORBIDDEN'});ok(res,await pgRepo.audit(pgTenant));}catch(error){next(error);}});
 const admin=(req,res,next)=>req.user.role==='admin'?next():res.status(403).json({code:'FORBIDDEN',message:'เฉพาะผู้ดูแลระบบ'});
 app.get('/api/auth/me',(req,res)=>ok(res,req.user));
-app.post('/api/auth/logout',async(req,res,next)=>{try{const token=cookie(req);if(token){if(pgMode())await pgRepo.revokeSession(hash(token));else run('DELETE FROM sessions WHERE token=?',hash(token));}res.clearCookie('baan_session',{path:'/'});ok(res,true);}catch(error){next(error);}});
+app.post('/api/auth/logout',async(req,res,next)=>{try{const token=cookie(req);if(token){if(pgMode())await pgRepo.revokeSession(pgTenant,hash(token));else run('DELETE FROM sessions WHERE token=?',hash(token));}res.clearCookie('baan_session',{path:'/'});ok(res,true);}catch(error){next(error);}});
 function products(user){return all('SELECT p.*,c.name category_name FROM products p LEFT JOIN categories c ON c.id=p.category_id ORDER BY p.id').map(p=>{if(user.role!=='admin')delete p.cost_price;return p;});}
 app.get('/api/products',(req,res)=>ok(res,products(req.user)));
 app.get('/api/products/:id',(req,res)=>{const p=products(req.user).find(p=>p.id===idOf(req));if(!p)throw new AppError('ไม่พบสินค้า',404);ok(res,p);});

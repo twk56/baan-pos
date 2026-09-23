@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: baan-pos-staging
+    runtime: docker
+    plan: free
+    healthCheckPath: /readyz
+    preDeployCommand: node scripts/init-postgres.mjs
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: baan-pos-staging-db
+          property: connectionString
+      - key: PG_TENANT_ID
+        value: 1683025e-9202-4b3a-946f-eb22576df898
+      - key: HTTPS_ONLY
+        value: 1
+      - key: TRUST_PROXY
+        value: 1
+      - key: PAYMENT_MODE
+        value: production
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: OPN_PUBLIC_KEY
+        sync: false
+      - key: OPN_SECRET_KEY
+        sync: false
+      - key: OPN_WEBHOOK_SECRET
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+databases:
+  - name: baan-pos-staging-db
+    plan: 0.1c-256mb
+    databaseName: baan_pos
+    user: baan_pos
+    ipAllowList: []
