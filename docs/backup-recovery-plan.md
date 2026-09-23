@@ -8,7 +8,7 @@
 
 ## Daily backup
 
-Run `npm run backup:postgres` from a host with `pg_dump`. Set `DATABASE_URL` and `BACKUP_ENCRYPTION_KEY`. Upload the resulting `.dump.enc` file to encrypted object storage with server-side encryption and a separate access key.
+Run `npm run backup:postgres` from a host with `pg_dump`. Set `DATABASE_URL` and `BACKUP_ENCRYPTION_KEY`. To upload automatically, also set `S3_BUCKET` and the standard AWS credentials/region variables. The scripts send the encrypted `.dump.enc` file to S3-compatible object storage with server-side AES-256 encryption and fail the job when upload fails.
 
 Keep 14 daily copies, 8 weekly copies, and 12 monthly copies. Never store the only copy on the application host.
 
@@ -30,3 +30,11 @@ If object storage is unavailable, retain the local encrypted dump and alert the 
 - Object storage bucket with versioning and lifecycle retention.
 - Scheduled job/CI runner and failure alert.
 - Quarterly restore drill, plus a drill before onboarding paid tenants.
+
+Example scheduled command on Windows:
+
+```powershell
+npm run backup:postgres
+```
+
+Treat a successful local dump without the `Off-site backup uploaded` message as incomplete for disaster recovery.
