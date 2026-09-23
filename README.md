@@ -8,6 +8,8 @@
 
 [วิธีติดตั้ง](#ติดตั้งและเปิดใช้งาน) · [คู่มือใช้งาน](docs/user-guide.md) · [สถาปัตยกรรมและ API](docs/architecture.md) · [ภาพหน้าจอ](#ภาพหน้าจอ)
 
+สำหรับการประเมินเชิงพาณิชย์ อ่าน [Commercial Readiness](docs/commercial-readiness.md) ก่อนเปิดรับร้านค้าจริง
+
 ## ติดตั้งและเปิดใช้งาน
 
 สิ่งที่ต้องมี: **Node.js 24 ขึ้นไป** (พร้อม npm) และ Git หากติดตั้งด้วยคำสั่ง clone
@@ -115,6 +117,8 @@ baan-pos/
 npm run build
 npm test
 ```
+
+ตรวจ dependency และสร้าง SBOM ได้ด้วย `npm run audit` และ `npm run sbom` ตามลำดับ สำรองฐานข้อมูลด้วย `npm run backup` (หยุด server ก่อนคัดลอกฐานข้อมูลใน production)
 
 ถ้าต้องการ Vite HMR ให้เปิด API ด้วย `npm start` และเปิด `npx vite` แยกอีก terminal (proxy `/api` ไป port 3000)
 
