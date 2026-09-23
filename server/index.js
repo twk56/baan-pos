@@ -8,6 +8,7 @@ import {all,get,run,transaction,audit} from './db.js';
 import {AppError,checkout,cancelOrder,receipt} from './service.js';
 import {PgRepository} from './pg-repository.js';
 import {registerAuthenticatedPaymentRoutes,registerPublicPaymentRoutes} from './routes/payments.js';
+import {startPaymentReconciliation} from './payment-reconciliation.js';
 const app=express();app.disable('x-powered-by');
 const sqliteTestMode=!process.env.DATABASE_URL&&Boolean(process.env.DB_PATH);
 if(!process.env.DATABASE_URL&&!sqliteTestMode) throw new Error('DATABASE_URL is required; SQLite fallback is disabled');
@@ -109,6 +110,7 @@ app.get('/api/audit',admin,(req,res)=>ok(res,all('SELECT a.*,u.name user_name FR
 app.use('/api',(req,res)=>res.status(404).json({code:'NOT_FOUND',message:'ไม่พบ API'}));
 app.use((err,req,res,next)=>{if(err instanceof z.ZodError)return res.status(400).json({code:'VALIDATION_ERROR',message:'ข้อมูลไม่ถูกต้อง: '+err.issues.map(i=>i.path.join('.')+' '+i.message).join(', '),request_id:req.requestId});if(err.code?.startsWith('SQLITE_CONSTRAINT')||err.message?.includes('UNIQUE constraint'))return res.status(409).json({code:'CONFLICT',message:'ข้อมูลซ้ำ กรุณาตรวจสอบ SKU, Barcode, อีเมล หรือชื่อหมวดหมู่',request_id:req.requestId});if(err.status)return res.status(err.status).json({code:err.code||'ERROR',message:err.message,request_id:req.requestId});console.error(JSON.stringify({level:'error',request_id:req.requestId,path:req.path,error:err.message,stack:process.env.NODE_ENV==='production'?undefined:err.stack}));res.status(500).json({code:'INTERNAL_ERROR',message:'เกิดข้อผิดพลาดภายในระบบ',request_id:req.requestId});});
 if(existsSync(resolve('dist/index.html'))){app.use(express.static(resolve('dist')));app.get('/{*path}',(req,res)=>res.sendFile(resolve('dist/index.html')));}else{const {createServer}=await import('vite');const vite=await createServer({server:{middlewareMode:true},appType:'spa'});app.use(vite.middlewares);}
+if(pgMode()&&process.env.PAYMENT_MODE==='production')startPaymentReconciliation({repo:pgRepo,tenantId:pgTenant,logger:console});
 const port=Number(process.env.PORT||3000);const host=process.env.HOST||(process.env.RENDER?'0.0.0.0':'127.0.0.1');app.listen(port,host,()=>console.log(`Baan POS ready at http://${host}:${port}`));
 
 
