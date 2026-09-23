@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: baan_pos
+      POSTGRES_USER: baan
+      POSTGRES_PASSWORD: change-me-local-only
+    ports: ["5432:5432"]
+    volumes: ["baan_pg:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U baan -d baan_pos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  baan_pg:

@@ -8,7 +8,7 @@
 
 [วิธีติดตั้ง](#ติดตั้งและเปิดใช้งาน) · [คู่มือใช้งาน](docs/user-guide.md) · [สถาปัตยกรรมและ API](docs/architecture.md) · [ภาพหน้าจอ](#ภาพหน้าจอ)
 
-สำหรับการประเมินเชิงพาณิชย์ อ่าน [Commercial Readiness](docs/commercial-readiness.md) ก่อนเปิดรับร้านค้าจริง
+สำหรับการประเมินเชิงพาณิชย์ อ่าน [Commercial Readiness](docs/commercial-readiness.md) และ [Production checklist](docs/production-checklist.md) ก่อนเปิดรับร้านค้าจริง
 
 ## ติดตั้งและเปิดใช้งาน
 

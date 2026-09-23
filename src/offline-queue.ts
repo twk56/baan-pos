@@ -1,0 +1,5 @@
+const DB='baan-pos-offline'; const STORE='queue';
+function open(){return new Promise<IDBDatabase>((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore(STORE,{keyPath:'id',autoIncrement:true});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+export async function enqueueOrder(payload:unknown){const db=await open();return new Promise<number>((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');const req=tx.objectStore(STORE).add({payload,createdAt:new Date().toISOString(),attempts:0});req.onsuccess=()=>resolve(Number(req.result));req.onerror=()=>reject(req.error);});}
+export async function pendingOrders(){const db=await open();return new Promise<any[]>((resolve,reject)=>{const req=db.transaction(STORE).objectStore(STORE).getAll();req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
+export async function removeQueuedOrder(id:number){const db=await open();db.transaction(STORE,'readwrite').objectStore(STORE).delete(id);}
