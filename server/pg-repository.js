@@ -14,6 +14,11 @@ export class PgRepository {
   }
   async health(){const result=await this.pool.query('SELECT 1 AS ok');return result.rows[0].ok===1;}
   async listProducts(tenantId){return this.withTenant(tenantId,async client=>(await client.query('SELECT p.*,c.name category_name FROM tenant_products p LEFT JOIN tenant_categories c ON c.tenant_id=p.tenant_id AND c.id=p.category_id WHERE p.tenant_id=current_setting(\'app.tenant_id\')::uuid ORDER BY p.id')).rows);}
+  async listCategories(tenantId){return this.withTenant(tenantId,async client=>(await client.query('SELECT * FROM tenant_categories WHERE tenant_id=current_setting(\'app.tenant_id\')::uuid ORDER BY id')).rows);}
+  async listCustomers(tenantId){return this.withTenant(tenantId,async client=>(await client.query('SELECT * FROM tenant_customers WHERE tenant_id=current_setting(\'app.tenant_id\')::uuid ORDER BY id DESC')).rows);}
+  async createCustomer(tenantId,{name,phone='',email=''}){return this.withTenant(tenantId,async client=>(await client.query('INSERT INTO tenant_customers(tenant_id,name,phone,email) VALUES(current_setting(\'app.tenant_id\')::uuid,$1,$2,$3) RETURNING *',[name,phone,email])).rows[0]);}
+  async listOrders(tenantId){return this.withTenant(tenantId,async client=>(await client.query('SELECT * FROM tenant_orders WHERE tenant_id=current_setting(\'app.tenant_id\')::uuid ORDER BY created_at DESC LIMIT 1000')).rows);}
+  async inventory(tenantId){return this.withTenant(tenantId,async client=>(await client.query('SELECT * FROM tenant_products WHERE tenant_id=current_setting(\'app.tenant_id\')::uuid ORDER BY stock_qty ASC')).rows);}
   async createTenant(name,slug){const result=await this.pool.query('INSERT INTO tenants(name,slug) VALUES($1,$2) RETURNING *',[name,slug]);return result.rows[0];}
   async createOrder(tenantId,{cashierId,customerId=null,items,discount=0,taxRate=7,method='cash',tendered=0,requestKey=randomUUID()}){
     return this.withTenant(tenantId,async client=>{
