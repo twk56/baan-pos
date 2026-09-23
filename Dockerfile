@@ -13,6 +13,7 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/server ./server
 COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/package.json ./package.json
+RUN mkdir -p /app/data && chown -R node:node /app
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD wget -qO- http://127.0.0.1:3000/readyz || exit 1
