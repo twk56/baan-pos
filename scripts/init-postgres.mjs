@@ -16,6 +16,8 @@ try{
       await client.query("SELECT set_config('app.tenant_id',$1,true)",[PG_TENANT_ID]);
       await client.query("INSERT INTO tenant_users(tenant_id,user_id,name,email,password_hash,role,status) VALUES($1,1,'Administrator',$2,$3,'admin','active') ON CONFLICT(tenant_id,email) DO UPDATE SET password_hash=EXCLUDED.password_hash,status='active'",[PG_TENANT_ID,ADMIN_EMAIL.toLowerCase(),passwordHash]);
       await client.query('INSERT INTO tenant_settings(tenant_id) VALUES($1) ON CONFLICT DO NOTHING',[PG_TENANT_ID]);
+      const category=await client.query("INSERT INTO tenant_categories(tenant_id,name) VALUES($1,'เครื่องดื่ม') ON CONFLICT(tenant_id,name) DO UPDATE SET status='active' RETURNING id",[PG_TENANT_ID]);
+      await client.query("INSERT INTO tenant_products(tenant_id,category_id,sku,barcode,name,cost_price,sale_price,stock_qty,min_stock,image_url,status) VALUES($1,$2,'COFFEE-001','885000000001','อเมริกาโน่',3000,6500,100,10,'☕','active'),($1,$2,'TEA-001','885000000002','ชาไทย',2500,6000,100,10,'🧋','active') ON CONFLICT(tenant_id,sku) DO NOTHING",[PG_TENANT_ID,category.rows[0].id]);
       await client.query('COMMIT');
     }catch(error){await client.query('ROLLBACK');throw error;}finally{client.release();}
   }
