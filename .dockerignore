@@ -1,0 +1,9 @@
+.git
+.env
+node_modules
+dist
+data
+backups
+*.log
+server-live.*
+.local

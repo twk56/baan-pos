@@ -1,0 +1,37 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://baan:${POSTGRES_PASSWORD:?required}@postgres:5432/baan_pos
+      PG_TENANT_ID: ${PG_TENANT_ID:?required}
+      HTTPS_ONLY: 1
+      TRUST_PROXY: 1
+      PAYMENT_MODE: ${PAYMENT_MODE:-simulation}
+      OPN_PUBLIC_KEY: ${OPN_PUBLIC_KEY:-}
+      OPN_SECRET_KEY: ${OPN_SECRET_KEY:-}
+      OPN_WEBHOOK_SECRET: ${OPN_WEBHOOK_SECRET:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000"
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: baan_pos
+      POSTGRES_USER: baan
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+    volumes:
+      - baan_pg:/var/lib/postgresql/data
+      - ./server/postgres-schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U baan -d baan_pos"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+volumes:
+  baan_pg:

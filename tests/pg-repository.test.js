@@ -8,5 +8,6 @@ test('postgres repository transaction and tenant isolation',async t=>{
   if(!repo){t.skip('DATABASE_URL not configured');return;}
   const tenants=(await repo.pool.query('SELECT id FROM tenants ORDER BY created_at LIMIT 2')).rows;assert.ok(tenants.length>=2);
   const products=await repo.listProducts(tenants[0].id);assert.equal(Array.isArray(products),true);
+  const reports=await repo.reports(tenants[0].id,'2020-01-01','2099-12-31');assert.equal(Array.isArray(reports.payments),true);
   const cross=await repo.withTenant(tenants[0].id,async client=>(await client.query('SELECT count(*)::int count FROM tenant_products WHERE tenant_id=$1',[tenants[1].id])).rows[0].count);assert.equal(Number(cross),0);
 });

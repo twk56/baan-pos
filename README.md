@@ -2,7 +2,7 @@
 
 **Full-Stack Point of Sale & Inventory Management System**
 
-ระบบ POS Demo ภาษาไทยสำหรับร้านค้าสาขาเดียว พร้อมฐานข้อมูลจริง การจัดการสต็อก รายงาน และการชำระเงินจำลอง เหมาะสำหรับทดลองใช้งานและนำเสนอ Portfolio
+ระบบ POS ภาษาไทยบน PostgreSQL พร้อม multi-tenant data model การจัดการสต็อก รายงาน และ PromptPay ผ่าน Opn Payments
 
 ![หน้าขายสินค้าและตะกร้า Baan POS](docs/screenshots/pos.png)
 
@@ -12,17 +12,18 @@
 
 ## ติดตั้งและเปิดใช้งาน
 
-สิ่งที่ต้องมี: **Node.js 24 ขึ้นไป** (พร้อม npm) และ Git หากติดตั้งด้วยคำสั่ง clone
+สิ่งที่ต้องมี: **Node.js 24 ขึ้นไป**, PostgreSQL 16 และ Git หากติดตั้งด้วยคำสั่ง clone
 
 ```bash
 git clone https://github.com/twk56/baan-pos.git
 cd baan-pos
 npm ci
 npm run build
+npm run test:pg
 npm start
 ```
 
-เปิด **http://localhost:3000** ในเบราว์เซอร์ ฐานข้อมูลและบัญชีสาธิตจะสร้างอัตโนมัติเมื่อเปิดครั้งแรก กด `Ctrl+C` ใน terminal เพื่อหยุด server
+ตั้ง `DATABASE_URL` และ `PG_TENANT_ID` ก่อนเริ่มระบบ แล้วเปิด **http://localhost:3000** ในเบราว์เซอร์ ดู deployment แบบ container และ HTTPS ใน [Staging deployment](docs/staging-deployment.md)
 
 **สำหรับ Windows:** หลัง clone หรือดาวน์โหลด ZIP แล้วแตกไฟล์ สามารถดับเบิลคลิก **Start-POS.cmd** ได้ ตัวเปิดโปรแกรมจะติดตั้ง dependencies และ build ถ้ายังไม่มี จากนั้นเปิด server แบบ background และเปิดเบราว์เซอร์ให้ ไม่ต้องติดตั้ง database server แยก
 
@@ -141,6 +142,6 @@ Environment variables: `PORT` (default 3000), `DB_PATH` (default `data/pos.sqlit
 ดูรายละเอียด [API, schema และ case study](docs/architecture.md) หรือ [คู่มือใช้งาน](docs/user-guide.md)
 
 
-### Payment demo mode
+### Payment mode
 
-ระบบเริ่มต้นด้วย `PAYMENT_MODE=simulation` เพื่อสาธิตการขายโดยไม่เรียกเก็บเงินจริง เมื่อเลือกผู้ให้บริการและได้รับ credentials แล้วจึงเปลี่ยนเป็น production และติดตั้ง provider adapter.
+ระบบเริ่มต้นด้วย `PAYMENT_MODE=simulation` เพื่อสาธิตการขายโดยไม่เรียกเก็บเงินจริง เมื่อตั้ง Opn test credentials และ webhook แล้วจึงใช้ `PAYMENT_MODE=production` เพื่อทดสอบ PromptPay end-to-end ใน test mode ของ Opn
