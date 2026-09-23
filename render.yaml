@@ -4,7 +4,6 @@ services:
     runtime: docker
     plan: free
     healthCheckPath: /readyz
-    preDeployCommand: node scripts/init-postgres.mjs
     envVars:
       - key: DATABASE_URL
         fromDatabase:
