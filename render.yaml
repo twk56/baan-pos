@@ -31,7 +31,7 @@ services:
         sync: false
 databases:
   - name: baan-pos-staging-db
-    plan: 0.1c-256mb
+    plan: free
     databaseName: baan_pos
     user: baan_pos
     ipAllowList: []
