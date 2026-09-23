@@ -23,3 +23,7 @@
 ## ห้ามทำก่อนตรวจรับ
 
 ห้ามใช้ schema foundation นี้กับ production โดยตรงจนกว่าจะย้ายทุก business table ให้มี `tenant_id`, ใช้ tenant context จาก authenticated session, เพิ่ม row-level isolation tests และทำ migration/rollback ที่ทดสอบแล้ว
+
+
+## PostgreSQL backup
+Set `DATABASE_URL` and optionally `BACKUP_ENCRYPTION_KEY`, then run `npm run backup:postgres`. Keep the dump outside the application host and perform a restore test against a disposable database.
