@@ -139,3 +139,8 @@ Environment variables: `PORT` (default 3000), `DB_PATH` (default `data/pos.sqlit
 บัญชีตัวอย่างและรหัสผ่านมีไว้สำหรับข้อมูลสาธิตในเครื่อง ก่อนนำไปเปิดบนอินเทอร์เน็ตต้องเตรียม TLS, บัญชีจริง, deployment configuration, backup policy และทดสอบโหลดตามการใช้งานจริง
 
 ดูรายละเอียด [API, schema และ case study](docs/architecture.md) หรือ [คู่มือใช้งาน](docs/user-guide.md)
+
+
+### Payment demo mode
+
+ระบบเริ่มต้นด้วย `PAYMENT_MODE=simulation` เพื่อสาธิตการขายโดยไม่เรียกเก็บเงินจริง เมื่อเลือกผู้ให้บริการและได้รับ credentials แล้วจึงเปลี่ยนเป็น production และติดตั้ง provider adapter.
