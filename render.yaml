@@ -29,6 +29,26 @@ services:
         sync: false
       - key: SENTRY_DSN
         sync: false
+      - key: BACKUP_ENABLED
+        value: 1
+      - key: BACKUP_INITIAL_DELAY_MS
+        value: 60000
+      - key: BACKUP_INTERVAL_MS
+        value: 86400000
+      - key: S3_BUCKET
+        value: baan-pos-backups
+      - key: S3_PREFIX
+        value: postgres
+      - key: AWS_DEFAULT_REGION
+        value: auto
+      - key: AWS_ENDPOINT_URL
+        value: https://eba805ce20eb96fd6be305972cab5109.r2.cloudflarestorage.com
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: BACKUP_ENCRYPTION_KEY
+        sync: false
 databases:
   - name: baan-pos-staging-db
     plan: free

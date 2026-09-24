@@ -9,6 +9,7 @@ import {AppError,checkout,cancelOrder,receipt} from './service.js';
 import {PgRepository} from './pg-repository.js';
 import {registerAuthenticatedPaymentRoutes,registerPublicPaymentRoutes} from './routes/payments.js';
 import {startPaymentReconciliation} from './payment-reconciliation.js';
+import {getBackupState,startBackupScheduler} from './backup-scheduler.js';
 const app=express();app.disable('x-powered-by');
 const sqliteTestMode=!process.env.DATABASE_URL&&Boolean(process.env.DB_PATH);
 if(!process.env.DATABASE_URL&&!sqliteTestMode) throw new Error('DATABASE_URL is required; SQLite fallback is disabled');
@@ -28,6 +29,7 @@ const idOf=req=>z.coerce.number().int().positive().parse(req.params.id);
 const hash=t=>createHash('sha256').update(t).digest('hex');
 app.get('/healthz',(req,res)=>res.json({status:'ok',service:'baan-pos',request_id:req.requestId}));
 app.get('/readyz',async(req,res)=>{try{if(pgMode()){await pgRepo.health();}else get('SELECT 1');res.json({status:'ready',database:pgMode()?'postgresql':'sqlite',request_id:req.requestId});}catch(error){res.status(503).json({status:'not_ready',database:'error',request_id:req.requestId});}});
+app.get('/backupz',(req,res)=>{const backup=getBackupState();const ok=['ok','scheduled'].includes(backup.status);res.status(ok?200:503).json({status:ok?'ready':'not_ready',backup,request_id:req.requestId});});
 const cookie=req=>(req.headers.cookie||'').split(';').map(v=>v.trim()).find(v=>v.startsWith('baan_session='))?.slice(13);
 const attempts=new Map();
 registerPublicPaymentRoutes(app,{pgRepo,pgTenant,pgMode});
@@ -111,6 +113,7 @@ app.use('/api',(req,res)=>res.status(404).json({code:'NOT_FOUND',message:'ไม
 app.use((err,req,res,next)=>{if(err instanceof z.ZodError)return res.status(400).json({code:'VALIDATION_ERROR',message:'ข้อมูลไม่ถูกต้อง: '+err.issues.map(i=>i.path.join('.')+' '+i.message).join(', '),request_id:req.requestId});if(err.code?.startsWith('SQLITE_CONSTRAINT')||err.message?.includes('UNIQUE constraint'))return res.status(409).json({code:'CONFLICT',message:'ข้อมูลซ้ำ กรุณาตรวจสอบ SKU, Barcode, อีเมล หรือชื่อหมวดหมู่',request_id:req.requestId});if(err.status)return res.status(err.status).json({code:err.code||'ERROR',message:err.message,request_id:req.requestId});console.error(JSON.stringify({level:'error',request_id:req.requestId,path:req.path,error:err.message,stack:process.env.NODE_ENV==='production'?undefined:err.stack}));res.status(500).json({code:'INTERNAL_ERROR',message:'เกิดข้อผิดพลาดภายในระบบ',request_id:req.requestId});});
 if(existsSync(resolve('dist/index.html'))){app.use(express.static(resolve('dist')));app.get('/{*path}',(req,res)=>res.sendFile(resolve('dist/index.html')));}else{const {createServer}=await import('vite');const vite=await createServer({server:{middlewareMode:true},appType:'spa'});app.use(vite.middlewares);}
 if(pgMode()&&process.env.PAYMENT_MODE==='production')startPaymentReconciliation({repo:pgRepo,tenantId:pgTenant,logger:console});
+if(pgMode())startBackupScheduler({logger:console});
 const port=Number(process.env.PORT||3000);const host=process.env.HOST||(process.env.RENDER?'0.0.0.0':'127.0.0.1');app.listen(port,host,()=>console.log(`Baan POS ready at http://${host}:${port}`));
 
 
