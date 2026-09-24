@@ -119,7 +119,7 @@ npm run build
 npm test
 ```
 
-ตรวจ dependency และสร้าง SBOM ได้ด้วย `npm run audit` และ `npm run sbom` ตามลำดับ สำรองฐานข้อมูลด้วย `npm run backup` (หยุด server ก่อนคัดลอกฐานข้อมูลใน production)
+ตรวจ dependency และสร้าง SBOM ได้ด้วย `npm run audit` และ `npm run sbom` ตามลำดับ สำรอง PostgreSQL ด้วย `npm run backup:postgres` โดยกำหนด `DATABASE_URL` ก่อนรัน
 
 ถ้าต้องการ Vite HMR ให้เปิด API ด้วย `npm start` และเปิด `npx vite` แยกอีก terminal (proxy `/api` ไป port 3000)
 
@@ -129,13 +129,15 @@ Environment variables: `PORT` (default 3000), `DB_PATH` (default `data/pos.sqlit
 
 ## จัดเก็บและสำรองข้อมูล
 
-ข้อมูลจริงในเครื่องอยู่ที่ `data/pos.sqlite` และไฟล์ `-wal`/`-shm` ที่ SQLite จัดการ ห้ามลบไฟล์ขณะ server ทำงาน หากต้องการสำรอง ให้หยุด process ของ server นี้ก่อนแล้วสำรองโฟลเดอร์ `data` ทั้งหมด หรือใช้ SQLite online backup API
+ระบบใช้งาน PostgreSQL ผ่าน `DATABASE_URL` และไม่มี SQLite fallback สำหรับ runtime การสำรองใช้ `scripts/backup-postgres.ps1` หรือ `scripts/backup-postgres.sh` ซึ่งสร้าง custom-format dump, ตรวจความสมบูรณ์ด้วย `pg_restore --list` และอัปโหลดไป S3-compatible object storage เมื่อกำหนด `S3_BUCKET` และ AWS credentials
+
+Staging ใช้ Cloudflare R2 bucket ส่วนตัว `baan-pos-backups` ภายใต้ prefix `postgres/` พร้อม lifecycle ลบไฟล์เมื่อครบ 30 วัน ทดสอบ restore ต้องดาวน์โหลด dump กลับมา ตรวจ checksum และ restore ลงฐานข้อมูลชั่วคราวที่แยกจากฐานจริง ห้ามทดสอบ restore ทับฐาน production
 
 เซิร์ฟเวอร์ผูกกับ 127.0.0.1 ใช้งานได้บนเครื่องนี้เท่านั้น การปิดเบราว์เซอร์ไม่หยุด server; ใช้ Task Manager เพื่อหยุด Node process ของโปรเจกต์ หรือใช้ Ctrl+C หากเปิดผ่าน terminal
 
 ## ข้อจำกัดของ Demo
 
-ไม่เชื่อม Payment Gateway, QR ธนาคาร, เครื่องพิมพ์, Barcode hardware, บัญชี/ภาษีตามกฎหมาย หรือหลายสาขา ปุ่มพิมพ์ใช้ browser print รายการขายย้อนหลังโหลดสูงสุด 1,000 รายการ, movement 500, audit 200; ยังไม่มี pagination ฐานข้อมูลไม่ใช่ PostgreSQL และตัวแอปยังไม่ได้ deploy ออนไลน์ (GitHub นี้เผยแพร่ source code)
+PromptPay เชื่อม Opn test mode และ staging แล้ว จึงยังไม่มีการเรียกเก็บเงินจริง ระบบยังต้องผ่านการตรวจภาษีไทย/PDPA, external penetration test, load test และ pilot หน้างานก่อนเปิดเชิงพาณิชย์เต็มรูปแบบ
 
 บัญชีตัวอย่างและรหัสผ่านมีไว้สำหรับข้อมูลสาธิตในเครื่อง ก่อนนำไปเปิดบนอินเทอร์เน็ตต้องเตรียม TLS, บัญชีจริง, deployment configuration, backup policy และทดสอบโหลดตามการใช้งานจริง
 

@@ -6,6 +6,7 @@ data/
 server-live.out
 server-live.err
 .local/
+backups/
 .env.*
 !.env.example
 *.sqlite
