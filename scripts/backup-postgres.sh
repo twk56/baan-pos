@@ -2,6 +2,7 @@
 set -eu
 : "${DATABASE_URL:?DATABASE_URL is required}"
 OUT_DIR="${1:-./backups}"; mkdir -p "$OUT_DIR"; STAMP="$(date +%Y%m%d-%H%M%S)"; TARGET="$OUT_DIR/baan-pos-$STAMP.dump"
+if [ -n "${PG_TENANT_ID:-}" ]; then export PGOPTIONS="${PGOPTIONS:-} -c app.tenant_id=$PG_TENANT_ID"; fi
 pg_dump "$DATABASE_URL" --format=custom --no-owner --file="$TARGET"
 pg_restore --list "$TARGET" >/dev/null
 if [ -n "${BACKUP_ENCRYPTION_KEY:-}" ]; then openssl enc -aes-256-cbc -pbkdf2 -salt -in "$TARGET" -out "$TARGET.enc" -pass env:BACKUP_ENCRYPTION_KEY; rm -f "$TARGET"; TARGET="$TARGET.enc"; fi
