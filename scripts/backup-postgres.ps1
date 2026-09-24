@@ -4,7 +4,7 @@ if (-not $env:DATABASE_URL) { throw 'DATABASE_URL is required' }
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $target = Join-Path $OutputDir "baan-pos-$stamp.dump"
-& pg_dump $env:DATABASE_URL --format=custom --no-owner --file=$target
+& pg_dump $env:DATABASE_URL --format=custom --no-owner --enable-row-security --file=$target
 if ($LASTEXITCODE -ne 0) { throw 'pg_dump failed' }
 if ($env:BACKUP_ENCRYPTION_KEY) { & openssl enc -aes-256-cbc -pbkdf2 -salt -in $target -out "$target.enc" -pass env:BACKUP_ENCRYPTION_KEY; Remove-Item $target; $target = "$target.enc" }
 Get-ChildItem $OutputDir -Filter '*.dump*' | Sort-Object LastWriteTime -Descending | Select-Object -Skip 14 | Remove-Item -Force
