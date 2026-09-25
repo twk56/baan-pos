@@ -4,6 +4,7 @@ import {verifyHmacWebhook} from '../payment-adapter.js';
 
 const parse=(schema,body)=>schema.parse(body);
 const ok=(res,data)=>res.json({data});
+const QR_TTL_MS=10*60*1000;
 
 export function registerPublicPaymentRoutes(app,{pgRepo,pgTenant,pgMode}){
   app.post('/api/payments/webhook',async(req,res,next)=>{try{
@@ -21,8 +22,11 @@ export function registerAuthenticatedPaymentRoutes(app,{pgRepo,pgTenant,pgMode})
     if(!pgMode())return res.status(503).json({code:'PG_NOT_CONFIGURED'});
     const p=parse(z.object({amount:z.number().int().positive(),source:z.string().min(3),description:z.string().max(160).optional(),order_id:z.coerce.number().int().positive().optional()}),req.body);
     const charge=await new OpnPaymentProvider().createCharge({amount:p.amount,currency:'thb',source:p.source,description:p.description||`Baan POS order ${p.order_id||''}`});
-    if(p.order_id)await pgRepo.linkPaymentReference(pgTenant,p.order_id,charge.id);
-    ok(res,{id:charge.id,status:charge.status,expires_at:charge.expires_at||null,authorize_uri:charge.authorize_uri||null,scannable_code:charge.scannable_code||charge.source?.scannable_code||null});
+    const appExpiry=new Date(Date.now()+QR_TTL_MS);
+    const providerExpiry=charge.expires_at?new Date(charge.expires_at):null;
+    const expiresAt=providerExpiry&&providerExpiry<appExpiry?providerExpiry:appExpiry;
+    if(p.order_id)await pgRepo.linkPaymentReference(pgTenant,p.order_id,charge.id,expiresAt);
+    ok(res,{id:charge.id,status:charge.status,expires_at:expiresAt.toISOString(),authorize_uri:charge.authorize_uri||null,scannable_code:charge.scannable_code||charge.source?.scannable_code||null});
   }catch(error){next(error);}});
   app.post('/api/payments/opn/promptpay/source',async(req,res,next)=>{try{
     const p=parse(z.object({amount:z.number().int().positive()}),req.body);

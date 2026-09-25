@@ -8,6 +8,9 @@ export async function reconcilePendingPayments({repo,tenantId,provider=new OpnPa
   for(const payment of pending){
     try{
       const charge=await provider.getCharge(payment.reference);
+      if(!terminal.has(charge.status)&&payment.expires_at&&Date.now()>=new Date(payment.expires_at).getTime()){
+        charge.status='expired';charge.expired=true;
+      }
       if(!terminal.has(charge.status))continue;
       await repo.applyOpnEvent(tenantId,{id:`reconcile:${charge.id}:${charge.status}`,key:'charge.complete',data:charge});
       result.settled++;
